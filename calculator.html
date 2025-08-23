@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculator</title>
+  <style>
+    body {
+      background: linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%);
+      color: #222;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .calculator {
+      background: #333;
+      padding: 36px 28px 32px 28px;
+      border-radius: 28px;
+      box-shadow: 0 8px 32px #e91e63aa, 0 2px 12px #222;
+      width: 340px;
+      border: 2px solid rgba(233,30,99,0.18);
+      position: relative;
+    }
+    .calc-title {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 18px;
+      gap: 8px;
+      text-shadow: 0 2px 8px #222;
+    }
+    .display {
+      background: rgba(34,34,34,0.85);
+      color: #e91e63;
+      font-size: 2.2rem;
+      border-radius: 12px;
+      padding: 18px 16px;
+      margin-bottom: 18px;
+      text-align: right;
+      min-height: 54px;
+      overflow-x: auto;
+      word-break: break-all;
+      box-shadow: 0 2px 8px #e91e6333;
+    }
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+    button {
+      font-size: 1.25rem;
+      padding: 18px 0;
+      border: none;
+      border-radius: 12px;
+      background: rgba(68,68,88,0.85);
+      color: #fff;
+      cursor: pointer;
+      transition: background 0.2s, box-shadow 0.2s, color 0.2s;
+      box-shadow: 0 2px 8px #22222233;
+    }
+    button:hover {
+      background: #e91e63;
+      color: #fff;
+      box-shadow: 0 4px 16px #e91e63aa;
+    }
+    .operator {
+      background: #e91e63;
+      color: #fff;
+      font-weight: bold;
+    }
+    .equal {
+      background: #fff;
+      color: #e91e63;
+      font-weight: bold;
+      box-shadow: 0 2px 8px #e91e6333;
+    }
+    .clear {
+      background: #ad1457;
+      color: #fff;
+      font-weight: bold;
+    }
+    .error {
+      color: #ff5252;
+      font-size: 1rem;
+      margin-top: 8px;
+      min-height: 22px;
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+  <div class="calculator">
+    <div class="calc-title">
+      <svg width="32" height="32" viewBox="0 0 32 32" style="vertical-align:middle;margin-right:8px"><rect x="2" y="2" width="28" height="28" rx="8" fill="#e91e63"/><text x="16" y="22" text-anchor="middle" font-size="16" fill="#fff" font-family="Segoe UI, Arial">C</text></svg>
+      <span style="font-size:1.7rem;font-weight:bold;color:#e91e63;letter-spacing:2px;font-family:'Segoe UI',cursive;">My Calculator</span>
+    </div>
+    <div class="display" id="display"></div>
+    <div class="error" id="error"></div>
+    <div class="buttons">
+      <button data-value="7">7</button>
+      <button data-value="8">8</button>
+      <button data-value="9">9</button>
+      <button class="operator" data-value="/">&divide;</button>
+      <button data-value="4">4</button>
+      <button data-value="5">5</button>
+      <button data-value="6">6</button>
+      <button class="operator" data-value="*">&times;</button>
+      <button data-value="1">1</button>
+      <button data-value="2">2</button>
+      <button data-value="3">3</button>
+      <button class="operator" data-value="-">&minus;</button>
+      <button data-value="0">0</button>
+      <button data-value=".">.</button>
+      <button class="clear" id="clear">C</button>
+      <button class="operator" data-value="+">+</button>
+      <button class="equal" id="equal" style="grid-column: span 4;">=</button>
+    </div>
+  </div>
+  <script>
+    const display = document.getElementById('display');
+    const errorDiv = document.getElementById('error');
+    let input = '';
+    let error = '';
+
+    function updateDisplay() {
+      display.textContent = input || '0';
+      errorDiv.textContent = error;
+    }
+
+    function clearAll() {
+      input = '';
+      error = '';
+      updateDisplay();
+    }
+
+    function appendValue(val) {
+      if (error) error = '';
+      input += val;
+      updateDisplay();
+    }
+
+    function handleEqual() {
+      try {
+        // Basic input validation
+        if (!input) return;
+        // Prevent invalid trailing operator
+        if (/[-+*/.]$/.test(input)) {
+          error = 'Invalid expression';
+          updateDisplay();
+          return;
+        }
+        // Evaluate
+        let result = Function('return ' + input)();
+        if (result === undefined || isNaN(result)) {
+          error = 'Error';
+        } else {
+          input = result.toString();
+          error = '';
+        }
+      } catch (e) {
+        error = 'Error';
+      }
+      updateDisplay();
+    }
+
+    document.querySelectorAll('.buttons button[data-value]').forEach(btn => {
+      btn.addEventListener('click', e => {
+        appendValue(btn.getAttribute('data-value'));
+      });
+    });
+    document.getElementById('clear').addEventListener('click', clearAll);
+    document.getElementById('equal').addEventListener('click', handleEqual);
+
+    // Keyboard support
+    document.addEventListener('keydown', e => {
+      if (error) error = '';
+      if (e.key >= '0' && e.key <= '9') {
+        appendValue(e.key);
+      } else if (['+', '-', '*', '/','.'].includes(e.key)) {
+        appendValue(e.key);
+      } else if (e.key === 'Enter' || e.key === '=') {
+        handleEqual();
+      } else if (e.key === 'Backspace') {
+        input = input.slice(0, -1);
+        updateDisplay();
+      } else if (e.key.toLowerCase() === 'c') {
+        clearAll();
+      }
+    });
+
+    updateDisplay();
+  </script>
+</body>
+</html>
